@@ -4,12 +4,10 @@ import pandas as pd
 # Konfigurasi Halaman
 st.set_page_config(page_title="Shopee Affiliate Filter", layout="wide")
 
-st.title("🛒 Pencari Komisi Shopee Affiliate Maksimal")
-st.write("Temukan produk terlaris dengan komisi paling besar untuk dipromosikan.")
+st.title("🛒 Pencari Produk Shopee Terlaris")
+st.write("Saring produk berdasarkan kategori dan penjualan terbanyak, lalu *copy* link-nya untuk dijadikan tautan Affiliate Anda!")
 
-# --- FUNGSI DATA SIMULASI (Agar bisa langsung dites) ---
-@st.cache_data
-# --- FUNGSI DATA SIMULASI (Agar bisa langsung dites) ---
+# --- FUNGSI DATA SIMULASI ---
 @st.cache_data
 def load_dummy_data():
     data = {
@@ -23,13 +21,20 @@ def load_dummy_data():
             "Rumah Tangga", "Kecantikan", "Rumah Tangga",
             "Makanan dan Minuman", "Makanan dan Minuman"
         ],
-        "Harga (Rp)": [150000, 85000, 120000, 45000, 95000, 250000, 85000, 15000],
         "Terjual / Bulan": [1200, 850, 3000, 5000, 2500, 400, 2100, 5000],
         "Komisi (%)": [5, 10, 8, 12, 15, 5, 10, 12],
+        "Link Produk": [
+            "https://shopee.co.id/sepatu-sneakers-contoh",
+            "https://shopee.co.id/kemeja-flanel-contoh",
+            "https://shopee.co.id/headset-tws-contoh",
+            "https://shopee.co.id/botol-minum-contoh",
+            "https://shopee.co.id/skincare-serum-contoh",
+            "https://shopee.co.id/panci-set-contoh",
+            "https://shopee.co.id/kopi-arabica-contoh",
+            "https://shopee.co.id/keripik-kaca-contoh"
+        ]
     }
     df = pd.DataFrame(data)
-    # Menghitung estimasi nominal komisi per penjualan
-    df["Estimasi Komisi (Rp)"] = (df["Harga (Rp)"] * df["Komisi (%)"] / 100).astype(int)
     return df
 
 # --- AREA UNGGAH DATA ---
@@ -55,37 +60,37 @@ st.sidebar.header("⚙️ Filter Produk")
 kategori_unik = df["Kategori"].unique().tolist()
 pilih_kategori = st.sidebar.multiselect("Pilih Kategori:", options=kategori_unik, default=kategori_unik)
 
-# 2. Filter Komisi Minimal
-min_komisi = st.sidebar.slider("Minimal Persentase Komisi (%)", min_value=0, max_value=20, value=5)
-
-# 3. Filter Jumlah Terjual
-min_terjual = st.sidebar.number_input("Minimal Produk Terjual (Pieces)", min_value=0, value=500, step=100)
+# 2. Filter Jumlah Terjual Minimal
+min_terjual = st.sidebar.number_input("Minimal Produk Terjual (Pieces)", min_value=0, value=1000, step=100)
 
 # --- PROSES PENYARINGAN ---
-# Terapkan filter ke dalam tabel data
+# Terapkan filter kategori dan jumlah terjual
 df_filtered = df[
     (df["Kategori"].isin(pilih_kategori)) & 
-    (df["Komisi (%)"] >= min_komisi) & 
     (df["Terjual / Bulan"] >= min_terjual)
 ]
 
-# Urutkan berdasarkan Estimasi Komisi Rp tertinggi
-df_filtered = df_filtered.sort_values(by="Estimasi Komisi (Rp)", ascending=False)
+# KUNCI UTAMA: Urutkan otomatis berdasarkan "Terjual / Bulan" paling banyak ke paling sedikit
+df_filtered = df_filtered.sort_values(by="Terjual / Bulan", ascending=False)
 
 # --- TAMPILAN HASIL ---
-st.subheader(f"📊 Menampilkan {len(df_filtered)} Produk Terbaik")
+st.subheader(f"📊 {len(df_filtered)} Produk Terlaris Sesuai Filter")
 
 if not df_filtered.empty:
     # Menampilkan tabel interaktif
     st.dataframe(
         df_filtered,
         column_config={
-            "Harga (Rp)": st.column_config.NumberColumn(format="Rp %d"),
-            "Estimasi Komisi (Rp)": st.column_config.NumberColumn(format="Rp %d", help="Nominal yang didapat per 1 barang terjual"),
-            "Komisi (%)": st.column_config.ProgressColumn(format="%d%%", min_value=0, max_value=20)
+            "Terjual / Bulan": st.column_config.NumberColumn(format="%d Pcs 📈"),
+            "Komisi (%)": st.column_config.ProgressColumn(format="%d%%", min_value=0, max_value=20),
+            # Membuat kolom link menjadi URL yang bisa di-klik dan di-copy dengan mudah
+            "Link Produk": st.column_config.LinkColumn("🔗 Link Produk (Copy/Klik)")
         },
         use_container_width=True,
         hide_index=True
     )
+    
+    st.markdown("---")
+    st.write("💡 **Cara *Copy* Link:** Arahkan kursor (*mouse*) ke sel link yang Anda inginkan, klik ikon *copy* kecil yang muncul, atau klik kanan dan pilih *Copy Link Address*.")
 else:
-    st.warning("Tidak ada produk yang memenuhi kriteria filter Anda. Coba turunkan standar komisi atau jumlah terjual.")
+    st.warning("Tidak ada produk yang memenuhi kriteria filter Anda. Coba turunkan standar jumlah terjual.")
