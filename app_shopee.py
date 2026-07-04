@@ -9,25 +9,26 @@ st.write("Temukan produk terlaris dengan komisi paling besar untuk dipromosikan.
 
 # --- FUNGSI DATA SIMULASI (Agar bisa langsung dites) ---
 @st.cache_data
-def # --- FUNGSI DATA SIMULASI ---
+# --- FUNGSI DATA SIMULASI (Agar bisa langsung dites) ---
 @st.cache_data
 def load_dummy_data():
     data = {
         "Nama Produk": [
             "Sepatu Sneakers Pria", "Kemeja Flanel Kotak", "Headset Bluetooth TWS", 
             "Botol Minum 2 Liter", "Skincare Serum Wajah", "Panci Set Anti Lengket",
-            "Kopi Bubuk Arabica 1kg", "Keripik Kaca Pedas Gila" # <--- Produk Baru
+            "Kopi Bubuk Arabica 1kg", "Keripik Kaca Pedas Gila"
         ],
         "Kategori": [
             "Fashion Pria", "Fashion Pria", "Elektronik", 
             "Rumah Tangga", "Kecantikan", "Rumah Tangga",
-            "Makanan dan Minuman", "Makanan dan Minuman" # <--- Kategori Baru
+            "Makanan dan Minuman", "Makanan dan Minuman"
         ],
         "Harga (Rp)": [150000, 85000, 120000, 45000, 95000, 250000, 85000, 15000],
         "Terjual / Bulan": [1200, 850, 3000, 5000, 2500, 400, 2100, 5000],
         "Komisi (%)": [5, 10, 8, 12, 15, 5, 10, 12],
     }
     df = pd.DataFrame(data)
+    # Menghitung estimasi nominal komisi per penjualan
     df["Estimasi Komisi (Rp)"] = (df["Harga (Rp)"] * df["Komisi (%)"] / 100).astype(int)
     return df
 
